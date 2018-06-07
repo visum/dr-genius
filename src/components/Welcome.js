@@ -21,7 +21,7 @@ export default class Welcome extends Component {
           <Game target={100} maxGuess={10} />
         ) : (
           <div>
-            We will take turns guessing numbers between 1 and 10. The first one to reach or exceed 100 looses.
+            We will take turns guessing numbers between 1 and 10. The player who lands on 100 wins.
             <button onClick={this.handleStartClick}>Start!</button>          
           </div>
         )}

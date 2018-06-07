@@ -4,7 +4,6 @@ import Genius from "../Genius";
 const turnMessages = {
   genius: "It's my turn",
   player: "It's your turn",
-  end: "Game over!",
   none: ""
 };
 
@@ -59,7 +58,7 @@ export default class Game extends Component {
   }
 
   render() {
-    const { total, message, target, maxGuess, turn, playerInput } = this.state;
+    const { total, message, target, maxGuess, turn } = this.state;
     return (
       <div onKeyPress={this.handleKeyPress} >
         <section>

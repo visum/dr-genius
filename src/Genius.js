@@ -1,7 +1,7 @@
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
+  return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
 }
 
 export default class Genius {
@@ -9,16 +9,42 @@ export default class Genius {
     this.target = target;
     this.seriesWidth = maxGuess + 1;
     this.currentTotal = 0;
-    this.series = [];
     this.observers = [];
     this.state = {
       target: target,
       maxGuess: maxGuess,
       turn: "genius",
       total: 0,
-      message: ""
+      message: "",
+      status: "play"
     };
-    this.buildSeries();
+  }
+
+  checkWin() {
+    if (this.state.total === 100) {
+      this.state.status = "end";
+      if (this.state.turn === "genius") {
+        this.state.message = "I won!";
+      } else {
+        this.state.message = "You beat me!";
+      }
+      this.state.turn = "end";
+    }
+  }
+
+  endTurn(guess) {
+    this.state.total += guess;
+    this.checkWin();
+    if (this.state.status === "play") {
+      if (this.state.turn === "genius") {
+        this.state.turn = "player";
+      } else {
+        this.state.turn = "genius";
+        this.geniusGuess(null, guess);
+      }
+      this.state.message = "";
+    }
+    this.notify();
   }
 
   taunt(message, time) {
@@ -29,54 +55,24 @@ export default class Genius {
     });
   }
 
-  buildSeries() {
-    let pen = 0;
-    const width = this.seriesWidth;
-    while (pen < this.target) {
-      pen += width;
-      this.series.push(pen);
-    }
-  }
-
   opponentGuess(guess) {
     this.state.turn = "none";
     this.taunt(`You guessed ${guess}.`, 2000).then(() => {
-      this.state.total += guess;  
-      if (this.state.total >= this.state.target) {
-        this.state.message = "I won!";
-        this.state.turn = "end";
-        this.notify();
-      } else {
-        this.state.turn = "genius";
-        this.geniusGuess();
-      }
+      this.endTurn(guess);
     });
   }
 
-  geniusGuess(staticGuess) {
+  geniusGuess(staticGuess, lastOpponentGuess) {
     let guess = 0;
     if (typeof staticGuess === "number") {
       guess = staticGuess;
     } else {
-      const { total } = this.state;
-      // what's the next number in the series?
-      let nextInSeries = 0;
-      for (let i = 0; i < this.series.length; i++) {
-        const seriesEntry = this.series[i];
-        if (seriesEntry > total) {
-          nextInSeries = seriesEntry;
-          break;
-        }
-      }
-      guess = nextInSeries - total;
+      guess = this.seriesWidth - lastOpponentGuess;
     }
     this.turn = "none";
     this.taunt("I will guess...", 1000).then(() => {
       this.taunt("I will guess... " + guess + ".", 1000).then(() => {
-        this.state.message = "";
-        this.state.total += guess;
-        this.state.turn = "player";
-        this.notify();
+        this.endTurn(guess);
       });
     });
   }
@@ -96,6 +92,6 @@ export default class Genius {
   }
 
   start() {
-    this.geniusGuess(getRandomIntInclusive(0, this.state.maxGuess));
+    this.geniusGuess(1);
   }
 }
